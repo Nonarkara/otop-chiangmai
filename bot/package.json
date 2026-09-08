@@ -1,0 +1,21 @@
+{
+  "name": "otop-bot",
+  "version": "0.1.0",
+  "description": "OTOP Chiang Mai — LINE + Telegram product ingestion bot with Gemini Vision",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@line/bot-sdk": "^9.4.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "axios": "^1.9.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "telegraf": "^4.16.3",
+    "uuid": "^10.0.0"
+  }
+}
