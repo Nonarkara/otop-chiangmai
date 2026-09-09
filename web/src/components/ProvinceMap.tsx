@@ -1,17 +1,22 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import type { Product } from '@/lib/types';
+
+// MapLibre + CARTO positron — the estate standard (conflict-tracker, geopolitics,
+// HCMC, chonburi, UNL). No access token, so the map cannot break on a revoked key.
+const TILE_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
+// Chiang Mai centre
+const CM_CENTER: [number, number] = [98.9817, 18.7904];
+const CM_ZOOM = 10;
+const CM_MIN_ZOOM = 9;
 
 interface Props {
   products: Product[];
   height?: string;
   interactive?: boolean;
 }
-
-// Chiang Mai centre
-const CM_CENTER: [number, number] = [98.9817, 18.7904];
-const CM_ZOOM = 10;
-const CM_MIN_ZOOM = 9;
 
 export default function ProvinceMap({ products, height = '48dvh', interactive = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,25 +28,22 @@ export default function ProvinceMap({ products, height = '48dvh', interactive = 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-    if (!token) { setError(true); return; }
-
     let cancelled = false;
 
-    import('mapbox-gl').then(mod => {
+    import('maplibre-gl').then(mod => {
       if (cancelled || !containerRef.current) return;
-      const mapboxgl = mod.default;
-      mapboxgl.accessToken = token;
+      const maplibregl = mod.default;
 
-      const map = new mapboxgl.Map({
+      const map = new maplibregl.Map({
         container: containerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: TILE_STYLE,
         center: CM_CENTER,
         zoom: CM_ZOOM,
-        minZoom: CM_MIN_ZOOM,
+        minZoom: CM_MIN_ZOOM,   // §11.9 — no world-copy repetition
         renderWorldCopies: false,
         interactive,
-        attributionControl: false,
+        // CARTO and OpenStreetMap require attribution; compact keeps it to one corner mark.
+        attributionControl: { compact: true },
       });
 
       mapRef.current = map;
@@ -62,7 +64,7 @@ export default function ProvinceMap({ products, height = '48dvh', interactive = 
             cursor: pointer;
           `;
 
-          const popup = new mapboxgl.Popup({
+          const popup = new maplibregl.Popup({
             closeButton: false,
             closeOnClick: true,
             offset: 10,
@@ -74,7 +76,7 @@ export default function ProvinceMap({ products, height = '48dvh', interactive = 
             </div>`
           );
 
-          const marker = new mapboxgl.Marker({ element: el })
+          const marker = new maplibregl.Marker({ element: el })
             .setLngLat([p.lon, p.lat])
             .setPopup(popup)
             .addTo(map);
