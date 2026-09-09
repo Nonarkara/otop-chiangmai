@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import DemoStrip from '@/components/DemoStrip';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'OTOP Chiang Mai Platform' }],
   openGraph: {
     title: 'OTOP เชียงใหม่',
-    description: 'สินค้าชุมชนล้านนาคัดสรร — พร้อมคะแนนคุณภาพและรีวิวจากผู้ซื้อจริง',
+    // No claim of real buyers or real reviews — this runs on demo data (§16.1 Law 3).
+    description: 'แพลตฟอร์มสินค้าชุมชนล้านนา — ตัวอย่างระบบ ข้อมูลสินค้าและรีวิวเป็นข้อมูลสาธิต',
     type: 'website',
     locale: 'th_TH',
   },
@@ -29,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="app-shell">
+        <DemoStrip />
         {children}
       </body>
     </html>

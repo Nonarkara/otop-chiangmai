@@ -6,7 +6,7 @@ const STEPS = [
   {
     n: '01',
     title: 'เข้าร่วมช่องทางของเรา',
-    desc: 'เพิ่ม OTOP เชียงใหม่บอท ใน LINE หรือ Telegram ด้านล่าง',
+    desc: 'เมื่อเปิดให้บริการ ผู้ขายจะเพิ่ม OTOP เชียงใหม่บอท ใน LINE หรือ Telegram',
   },
   {
     n: '02',
@@ -30,9 +30,11 @@ const STEPS = [
   },
 ];
 
+// Neither bot is registered yet. Advertising a handle that does not exist sends a
+// real seller to a dead end, so the channels are shown as not-yet-open instead.
 const CHANNELS = [
-  { platform: 'line',     name: 'OTOP เชียงใหม่ (LINE)',     handle: '@otop-chiangmai' },
-  { platform: 'telegram', name: 'OTOP Chiang Mai (Telegram)', handle: 't.me/otop_chiangmai_bot' },
+  { platform: 'line',     name: 'OTOP เชียงใหม่ (LINE)' },
+  { platform: 'telegram', name: 'OTOP Chiang Mai (Telegram)' },
 ];
 
 const TIPS = [
@@ -65,6 +67,9 @@ export default function SubmitPage() {
             <p className="thai" style={{ marginTop: '12px', fontSize: 'var(--text-body)', color: 'var(--dim)', lineHeight: 1.7 }}>
               ไม่ต้องสมัครสมาชิก ไม่ต้องเปิดเว็บ แค่ส่งรูปสินค้ามาในแชท ระบบ AI จะจัดการให้ทุกอย่าง
             </p>
+            <p className="thai" style={{ marginTop: '10px', fontSize: 'var(--text-micro)', color: '#7a3a00', lineHeight: 1.7 }}>
+              ขั้นตอนด้านล่างคือรูปแบบการใช้งานที่กำลังพัฒนา ยังไม่เปิดรับสินค้าจริง
+            </p>
           </div>
 
           {/* Channel links */}
@@ -74,9 +79,9 @@ export default function SubmitPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span className={`submit-channel-platform ${ch.platform}`}>{ch.platform.toUpperCase()}</span>
                   <span className="submit-channel-name thai">{ch.name}</span>
-                  <span className="mono" style={{ fontSize: 'var(--text-micro)', color: 'var(--dim)' }}>{ch.handle}</span>
+                  <span className="thai" style={{ fontSize: 'var(--text-micro)', color: 'var(--dim)' }}>ยังไม่เปิดให้บริการ</span>
                 </div>
-                <span className="submit-channel-action">เพิ่มบอท →</span>
+                <span className="submit-channel-action" style={{ color: 'var(--dim)' }}>เร็ว ๆ นี้</span>
               </div>
             ))}
           </div>
