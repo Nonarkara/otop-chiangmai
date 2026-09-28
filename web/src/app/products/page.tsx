@@ -4,7 +4,7 @@ import SiteHeader from '@/components/SiteHeader';
 import BottomNav from '@/components/BottomNav';
 import CategoryPill from '@/components/CategoryPill';
 import ProductCard from '@/components/ProductCard';
-import { SEED_PRODUCTS, SEED_CATEGORIES } from '@/lib/seed-data';
+import { useCatalogue } from '@/lib/useCatalogue';
 
 const SORT_OPTIONS = [
   { value: 'trending', label: 'ยอดนิยม' },
@@ -17,9 +17,10 @@ export default function ProductsPage() {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [sort, setSort]             = useState('trending');
   const [search, setSearch]         = useState('');
+  const { products, categories, liveIds } = useCatalogue();
 
   const filtered = useMemo(() => {
-    let list = SEED_PRODUCTS;
+    let list = products;
 
     if (activeSlug) list = list.filter(p => p.category_slug === activeSlug);
 
@@ -37,11 +38,11 @@ export default function ProductsPage() {
       switch (sort) {
         case 'score':     return b.ai_effectiveness_score - a.ai_effectiveness_score;
         case 'price_asc': return a.price_min - b.price_min;
-        case 'newest':    return b.id.localeCompare(a.id); // seed ID proxy for recency
-        default:          return b.trending_score - a.trending_score;
+        case 'newest':    return Number(liveIds.has(b.id)) - Number(liveIds.has(a.id));
+        default:          return (Number(liveIds.has(b.id)) - Number(liveIds.has(a.id))) || b.trending_score - a.trending_score;
       }
     });
-  }, [activeSlug, sort, search]);
+  }, [activeSlug, sort, search, products, liveIds]);
 
   return (
     <>
@@ -80,7 +81,7 @@ export default function ProductsPage() {
           >
             <span className="category-pill-label thai">ทั้งหมด</span>
           </button>
-          {SEED_CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <CategoryPill
               key={cat.slug}
               category={cat}

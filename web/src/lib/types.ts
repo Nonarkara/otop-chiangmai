@@ -40,7 +40,7 @@ export interface Product {
   description_th: string;
   description_en: string;
   images: string[];
-  otop_star_rating: 1 | 2 | 3 | 4 | 5;
+  otop_star_rating: 0 | 1 | 2 | 3 | 4 | 5;
   ai_effectiveness_score: number; // 0–100
   trending_score: number;
   view_count: number;
@@ -48,8 +48,10 @@ export interface Product {
   avg_rating: number;
   platform_source: 'line' | 'telegram' | 'manual';
   seller_name?: string;
+  contact?: string;
   lat?: number;
   lon?: number;
+  listed_at?: string;
 }
 
 export interface Review {

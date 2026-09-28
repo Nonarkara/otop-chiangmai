@@ -1,15 +1,18 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { loadLiveProducts } from '@/lib/catalog';
+
 /**
  * Honest-envelope strip (§16.1 Law 3, §16.2 T0).
- *
- * Every product, review, rating and score on this site is seed data. Until the
- * LINE/Telegram ingestion bot is live and writing to Supabase, that has to be
- * stated on the page itself — a fake number shown as live is worse than an error.
- *
- * Dark amber on pale amber, per §11.10's warning-strip convention. Not sticky:
- * the page loads at scroll-0 so every arrival sees it, and it does not
- * permanently eat phone viewport height (§11.8).
+ * Sample cards stay labelled. A row written by /listings is a real local record.
  */
 export default function DemoStrip() {
+  const [liveCount, setLiveCount] = useState(0);
+
+  useEffect(() => {
+    loadLiveProducts().then(rows => setLiveCount(rows.length));
+  }, []);
+
   return (
     <div
       role="note"
@@ -34,7 +37,7 @@ export default function DemoStrip() {
           flexShrink: 0,
         }}
       >
-        Demo
+        {liveCount ? 'Local' : 'Demo'}
       </span>
       <span
         className="thai"
@@ -43,7 +46,9 @@ export default function DemoStrip() {
           lineHeight: 1.6,
         }}
       >
-        ตัวอย่างระบบ — สินค้า รีวิว และคะแนนทั้งหมดเป็นข้อมูลสาธิต ยังไม่มีผู้ขายจริงบนแพลตฟอร์ม
+        {liveCount
+          ? `การ์ดตัวอย่างยังเป็นข้อมูลสาธิต สินค้าที่ลงจากหน้าส่ง (${liveCount}) อยู่ในฐานข้อมูลเครื่องนี้`
+          : 'ตัวอย่างระบบ — สินค้า รีวิว และคะแนนทั้งหมดเป็นข้อมูลสาธิต ยังไม่มีผู้ขายจริงบนแพลตฟอร์ม'}
       </span>
     </div>
   );

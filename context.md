@@ -13,10 +13,11 @@ as a live marketplace until the bot and Supabase are real.
 
 | | |
 |---|---|
-| Deployed URL | https://otop.pages.dev |
-| Intended URL | https://otop.nonarkara.org — **attached but not resolving**, see Blocker |
+| Deployed URL | https://otop-chiangmai.pages.dev |
+| Do not deploy to | `otop` / https://otop.pages.dev — that project is the national registry |
+| Intended URL | https://otop.nonarkara.org — **attached to the registry project, not this one** |
 | Platform | Cloudflare Pages, direct upload (no git integration) |
-| Pages project | `otop`, production branch `main` |
+| Pages project | `otop-chiangmai`, production branch `main` |
 | Cloudflare account | `74ad6bf8dfaaccf82de6f0847f7d2d54` |
 | nonarkara.org zone | `8809ee95…` (full id via `GET /zones?name=nonarkara.org`) |
 
@@ -24,7 +25,7 @@ as a live marketplace until the bot and Supabase are real.
 
 ```bash
 npm run build --prefix web          # → web/out/  (static export)
-npx wrangler pages deploy web/out --project-name otop --branch main
+npx wrangler pages deploy web/out --project-name otop-chiangmai --branch main
 ```
 
 No environment variables are required to build. The map needs no access token.
@@ -78,13 +79,29 @@ of that; **do not remove them while the data is still seed**:
    advertise (`@otop-chiangmai`, `t.me/otop_chiangmai_bot`) **do not exist**; a real
    seller following those steps hit a dead end.
 
+## Local loop (2026-09-24)
+
+The storefront and the bot talk to the shared local Supabase (`_infra/localbase`,
+API `http://127.0.0.1:54321`). `supabase/schema.sql` is applied in `public`
+(table names did not collide). Keys stay in gitignored `web/.env.local` and
+`bot/.env` — reprint with `supabase status` from `_infra/localbase`.
+
+```bash
+npm start --prefix bot          # http://127.0.0.1:3001  POST /listings
+npx next dev -p 3010 --prefix web   # http://localhost:3010
+```
+
+A listing saved from `/submit` is one `products` row with a phone or LINE id. The product page's action is that contact. Sample cards have none, and say so.
+Sample cards stay labelled. LINE, Telegram, and Gemini are still unwired: no
+tokens in this repo. Do not `wrangler pages deploy` this app onto project
+`otop` — that host is the registry at `otop.pages.dev`.
+
 ## Next session
 
-1. Create the DNS record (above) — one command, then the intended URL is live.
-2. Register the real LINE + Telegram bots, get a Gemini key, host `bot/` somewhere
-   persistent. `/submit` becomes truthful the moment that is real.
-3. Create the OTOP Supabase project, apply `supabase/schema.sql`, switch the frontend
-   off seed data. Then the DemoStrip comes down and the tier moves to T1.
+1. Register the real LINE + Telegram bots and a Gemini key, then the chat path
+   in `bot/` can write the same `products` table.
+2. DNS for `otop.nonarkara.org` is still the manual token step above — and it
+   must not point at this demo while the registry owns `otop.pages.dev`.
 
 ## Gotchas
 

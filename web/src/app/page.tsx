@@ -6,23 +6,30 @@ import BottomNav from '@/components/BottomNav';
 import TrendingTicker from '@/components/TrendingTicker';
 import CategoryPill from '@/components/CategoryPill';
 import ProductCard from '@/components/ProductCard';
-import { SEED_PRODUCTS, SEED_CATEGORIES } from '@/lib/seed-data';
+import { useCatalogue } from '@/lib/useCatalogue';
 
 const ProvinceMap = dynamic(() => import('@/components/ProvinceMap'), { ssr: false });
 
 export default function HomePage() {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const { products, categories, liveIds } = useCatalogue();
 
   const trending = useMemo(
-    () => [...SEED_PRODUCTS].sort((a, b) => b.trending_score - a.trending_score).slice(0, 8),
-    []
+    () => [...products].sort((a, b) => {
+      const live = Number(liveIds.has(b.id)) - Number(liveIds.has(a.id));
+      return live || b.trending_score - a.trending_score;
+    }).slice(0, 8),
+    [products, liveIds]
   );
 
   const displayed = useMemo(
     () => activeSlug
-      ? SEED_PRODUCTS.filter(p => p.category_slug === activeSlug)
-      : [...SEED_PRODUCTS].sort((a, b) => b.trending_score - a.trending_score),
-    [activeSlug]
+      ? products.filter(p => p.category_slug === activeSlug)
+      : [...products].sort((a, b) => {
+          const live = Number(liveIds.has(b.id)) - Number(liveIds.has(a.id));
+          return live || b.trending_score - a.trending_score;
+        }),
+    [activeSlug, products, liveIds]
   );
 
   const toggleCategory = (slug: string) =>
@@ -34,7 +41,7 @@ export default function HomePage() {
 
       <main className="main-content">
         {/* Province map — full bleed */}
-        <ProvinceMap products={SEED_PRODUCTS} height="48dvh" />
+        <ProvinceMap products={products} height="48dvh" />
 
         {/* Trending ticker */}
         <TrendingTicker products={trending} />
@@ -51,7 +58,7 @@ export default function HomePage() {
           >
             <span className="category-pill-label thai">ทั้งหมด</span>
           </button>
-          {SEED_CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <CategoryPill
               key={cat.slug}
               category={cat}
@@ -64,7 +71,7 @@ export default function HomePage() {
         {/* Product grid */}
         <div className="section-label">
           <span>{activeSlug
-            ? SEED_CATEGORIES.find(c => c.slug === activeSlug)?.name_th || 'สินค้า'
+            ? categories.find(c => c.slug === activeSlug)?.name_th || 'สินค้า'
             : 'สินค้าแนะนำ'}
           </span>
           <a href="/products" className="section-label-link">ดูทั้งหมด →</a>
@@ -90,10 +97,10 @@ export default function HomePage() {
           marginTop: '24px',
         }}>
           {[
-            { value: SEED_PRODUCTS.length, label: 'สินค้าทั้งหมด' },
-            { value: SEED_CATEGORIES.length, label: 'หมวดหมู่' },
+            { value: products.length, label: 'สินค้าทั้งหมด' },
+            { value: categories.length, label: 'หมวดหมู่' },
             { value: 25, label: 'อำเภอ' },
-            { value: `${Math.round(SEED_PRODUCTS.reduce((s, p) => s + p.ai_effectiveness_score, 0) / SEED_PRODUCTS.length)}`, label: 'คะแนนเฉลี่ย' },
+            { value: products.filter(p => p.contact).length, label: 'ติดต่อได้' },
           ].map(({ value, label }) => (
             <div key={label} style={{
               flex: 1, background: 'var(--bg)', padding: '16px 12px',

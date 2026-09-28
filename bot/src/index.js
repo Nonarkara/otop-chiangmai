@@ -7,6 +7,7 @@ import 'dotenv/config';
 import express from 'express';
 import { lineWebhookHandler } from './handlers/line.handler.js';
 import { telegramWebhookHandler, startTelegramPolling } from './handlers/telegram.handler.js';
+import { listingsHandler } from './handlers/listings.handler.js';
 import { startWorker } from './services/messageQueue.service.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -27,6 +28,7 @@ app.use(express.json());
 // Register webhook handlers
 lineWebhookHandler(app);
 telegramWebhookHandler(app);
+listingsHandler(app);
 
 // Root
 app.get('/', (_, res) => res.json({ service: 'OTOP Chiang Mai Bot', status: 'running' }));

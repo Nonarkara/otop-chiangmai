@@ -15,7 +15,7 @@ export default function ProductCard({ product }: Props) {
   const hasImage = images && images.length > 0;
 
   return (
-    <Link href={`/products/${slug}`} className="product-card">
+    <Link href={platform_source === 'manual' ? `/listing?slug=${slug}` : `/products/${slug}`} className="product-card">
       <div className="product-card-image">
         {hasImage ? (
           <img src={images[0]} alt={name_en || name_th} loading="lazy" />
@@ -25,7 +25,7 @@ export default function ProductCard({ product }: Props) {
           </div>
         )}
         <div className="product-card-platform">
-          {platform_source === 'line' ? 'LINE' : 'TG'}
+          {platform_source === 'line' ? 'LINE' : platform_source === 'telegram' ? 'TG' : 'ใหม่'}
         </div>
       </div>
 
@@ -38,7 +38,9 @@ export default function ProductCard({ product }: Props) {
             ฿{price_min.toLocaleString()}
             {price_max > price_min && `–${price_max.toLocaleString()}`}
           </span>
-          <EffectivenessScore score={ai_effectiveness_score} />
+          {product.contact
+            ? <span className="thai" style={{ fontSize: 'var(--text-micro)', color: 'var(--amber)' }}>{product.contact}</span>
+            : <EffectivenessScore score={ai_effectiveness_score} />}
         </div>
         <div className="product-card-district thai">{district_th}</div>
       </div>

@@ -1,6 +1,9 @@
 'use client';
 import SiteHeader from '@/components/SiteHeader';
 import BottomNav from '@/components/BottomNav';
+import { useEffect, useState, type FormEvent } from 'react';
+import { SEED_CATEGORIES } from '@/lib/seed-data';
+import { invalidateLiveProducts } from '@/lib/catalog';
 
 const STEPS = [
   {
@@ -45,7 +48,16 @@ const TIPS = [
   'สินค้า OTOP 5 ดาวจะถูกแนะนำในหน้าแรก',
 ];
 
+function onThisMachine() {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
 export default function SubmitPage() {
+  const [local, setLocal] = useState(false);
+  useEffect(() => { setLocal(onThisMachine()); }, []);
+
   return (
     <>
       <SiteHeader />
@@ -68,7 +80,9 @@ export default function SubmitPage() {
               ไม่ต้องสมัครสมาชิก ไม่ต้องเปิดเว็บ แค่ส่งรูปสินค้ามาในแชท ระบบ AI จะจัดการให้ทุกอย่าง
             </p>
             <p className="thai" style={{ marginTop: '10px', fontSize: 'var(--text-micro)', color: '#7a3a00', lineHeight: 1.7 }}>
-              ขั้นตอนด้านล่างคือรูปแบบการใช้งานที่กำลังพัฒนา ยังไม่เปิดรับสินค้าจริง
+              {local
+                ? 'LINE และ Telegram ยังไม่เปิด ลงสินค้าได้จากแบบฟอร์มด้านล่าง รายการจะโผล่บนหน้าแรกทันที'
+                : 'ขั้นตอนด้านล่างคือรูปแบบการใช้งานที่กำลังพัฒนา ยังไม่เปิดรับสินค้าจริง'}
             </p>
           </div>
 
@@ -85,6 +99,8 @@ export default function SubmitPage() {
               </div>
             ))}
           </div>
+
+          {local && <ListingForm />}
 
           {/* Steps */}
           <div style={{ borderTop: '1px solid var(--line)' }}>
@@ -135,5 +151,89 @@ export default function SubmitPage() {
 
       <BottomNav />
     </>
+  );
+}
+
+function ListingForm() {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [district, setDistrict] = useState('เมืองเชียงใหม่');
+  const [category, setCategory] = useState('crafts');
+  const [description, setDescription] = useState('');
+  const [contact, setContact] = useState('');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
+  const [slug, setSlug] = useState('');
+  const [error, setError] = useState('');
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setStatus('saving');
+    setError('');
+    try {
+      const res = await fetch('http://127.0.0.1:3001/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name_th: name,
+          price_min: Number(price),
+          price_max: Number(price),
+          district_th: district,
+          category_slug: category,
+          contact,
+          description_th: description,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'บันทึกไม่สำเร็จ');
+      invalidateLiveProducts();
+      setSlug(body.slug);
+      setStatus('done');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ');
+      setStatus('error');
+    }
+  }
+
+  const field = {
+    width: '100%',
+    minHeight: '44px',
+    padding: '10px 12px',
+    border: '1px solid var(--line)',
+    background: 'var(--bg)',
+    color: 'var(--fg)',
+    fontSize: 'var(--text-body)',
+    borderRadius: 0,
+  } as const;
+
+  return (
+    <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+      <p style={{
+        fontFamily: 'var(--font-display)', fontSize: 'var(--text-micro)',
+        fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--dim)',
+      }}>
+        ลงสินค้าบนเครื่องนี้
+      </p>
+      <input className="thai" required placeholder="ชื่อสินค้า" value={name} onChange={e => setName(e.target.value)} style={field} />
+      <input required inputMode="numeric" placeholder="ราคา (บาท)" value={price} onChange={e => setPrice(e.target.value)} style={field} />
+      <input className="thai" required placeholder="อำเภอ" value={district} onChange={e => setDistrict(e.target.value)} style={field} />
+      <select className="thai" value={category} onChange={e => setCategory(e.target.value)} style={field}>
+        {SEED_CATEGORIES.map(cat => (
+          <option key={cat.slug} value={cat.slug}>{cat.name_th}</option>
+        ))}
+      </select>
+      <input className="thai" required minLength={4} maxLength={80} placeholder="เบอร์โทร หรือ LINE" value={contact} onChange={e => setContact(e.target.value)} style={field} />
+      <textarea className="thai" placeholder="รายละเอียด" value={description} onChange={e => setDescription(e.target.value)} style={{ ...field, minHeight: '88px' }} />
+      <button type="submit" disabled={status === 'saving'} style={{ ...field, background: 'var(--amber)', color: '#1a1206', fontWeight: 700, cursor: 'pointer' }}>
+        {status === 'saving' ? 'กำลังบันทึก…' : 'บันทึกสินค้า'}
+      </button>
+      {status === 'done' && (
+        <a className="thai" href={`/listing?slug=${slug}`} style={{ color: '#7a3a00', fontSize: 'var(--text-body)' }}>
+          บันทึกแล้ว — เปิดรายการ
+        </a>
+      )}
+      {status === 'error' && (
+        <p className="thai" style={{ color: '#7a3a00', fontSize: 'var(--text-micro)' }}>{error}</p>
+      )}
+    </form>
   );
 }

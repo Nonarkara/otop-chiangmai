@@ -1,16 +1,47 @@
 'use client';
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import BottomNav from '@/components/BottomNav';
 import EffectivenessScore from '@/components/EffectivenessScore';
 import ReviewCard from '@/components/ReviewCard';
+import { loadLiveProducts } from '@/lib/catalog';
 import type { Product, Review } from '@/lib/types';
 
 const ProvinceMap = dynamic(() => import('@/components/ProvinceMap'), { ssr: false });
 
-interface Props { product: Product; reviews: Review[]; }
+interface Props { product: Product | null; slug: string; reviews: Review[]; }
 
-export default function ProductDetail({ product, reviews }: Props) {
+export default function ProductDetail({ product: initial, slug, reviews }: Props) {
+  const [product, setProduct] = useState<Product | null>(initial);
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    if (product) return;
+    let cancelled = false;
+    loadLiveProducts().then(rows => {
+      if (cancelled) return;
+      const found = rows.find(p => p.slug === slug);
+      if (found) setProduct(found);
+      else setMissing(true);
+    });
+    return () => { cancelled = true; };
+  }, [product, slug]);
+
+  if (!product) {
+    return (
+      <>
+        <SiteHeader />
+        <main className="main-content">
+          <p className="thai" style={{ padding: '32px 16px', color: 'var(--dim)' }}>
+            {missing ? 'ไม่พบสินค้านี้' : 'กำลังเปิดรายการ…'}
+          </p>
+        </main>
+        <BottomNav />
+      </>
+    );
+  }
+
   const otopStars = Array.from({ length: 5 }, (_, i) => i < product.otop_star_rating);
   const hasImage  = product.images && product.images.length > 0;
 
@@ -49,9 +80,9 @@ export default function ProductDetail({ product, reviews }: Props) {
                 fontSize: 'var(--text-micro)',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
-                color: product.platform_source === 'line' ? '#06c755' : '#229ed9',
+                color: 'var(--dim)',
               }}>
-                {product.platform_source === 'line' ? 'LINE' : 'TELEGRAM'}
+                {product.contact ? 'ติดต่อได้' : 'ตัวอย่าง'}
               </span>
             </div>
 
@@ -62,6 +93,8 @@ export default function ProductDetail({ product, reviews }: Props) {
               ฿{product.price_min.toLocaleString()}
               {product.price_max > product.price_min && `–${product.price_max.toLocaleString()}`} บาท
             </div>
+
+            <ReachMaker contact={product.contact} />
 
             {/* Badges */}
             <div className="product-detail-badges">
@@ -156,4 +189,41 @@ export default function ProductDetail({ product, reviews }: Props) {
       <BottomNav />
     </>
   );
+}
+
+function phoneHref(contact: string): string | null {
+  if (!/^[\d\s\-()+.]+$/.test(contact)) return null;
+  const digits = contact.replace(/\D/g, '');
+  if (digits.length < 9 || digits.length > 15) return null;
+  return `tel:${digits}`;
+}
+
+function ReachMaker({ contact }: { contact?: string }) {
+  if (!contact) {
+    return (
+      <p className="thai" style={{ margin: '12px 0 0', fontSize: 'var(--text-body)', color: '#7a3a00', lineHeight: 1.6 }}>
+        ตัวอย่าง — ไม่มีเบอร์หรือ LINE ให้ติดต่อ
+      </p>
+    );
+  }
+
+  const href = phoneHref(contact);
+  const style = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '44px',
+    marginTop: '12px',
+    padding: '0 16px',
+    background: 'var(--amber)',
+    color: '#1a1206',
+    fontSize: 'var(--text-body)',
+    fontWeight: 700,
+    textDecoration: 'none',
+  } as const;
+
+  if (href) {
+    return <a className="thai" href={href} style={style}>โทร {contact}</a>;
+  }
+  return <p className="thai" style={{ ...style, marginTop: '12px' }}>LINE {contact}</p>;
 }

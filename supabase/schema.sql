@@ -25,7 +25,8 @@ create table if not exists districts (
   province    text not null default 'chiang_mai',
   lat         numeric(10,6),
   lon         numeric(10,6),
-  created_at  timestamptz default now()
+  created_at  timestamptz default now(),
+  unique (name_th, province)
 );
 
 -- ── Sellers ──────────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ create table if not exists products (
   platform_source       text check (platform_source in ('line', 'telegram', 'manual')),
   lat                   numeric(10,6),
   lon                   numeric(10,6),
+  contact               text,
   published             boolean default true,
   created_at            timestamptz default now(),
   updated_at            timestamptz default now()
@@ -324,4 +326,11 @@ insert into districts (name_th, name_en, province, lat, lon) values
   ('แม่วาง',         'Mae Wang',           'chiang_mai', 18.5333, 98.7333),
   ('แม่ออน',         'Mae On',             'chiang_mai', 18.7833, 99.2000),
   ('ดอยหล่อ',        'Doi Lo',             'chiang_mai', 18.3500, 98.7833)
-on conflict do nothing;
+on conflict (name_th, province) do nothing;
+
+-- PostgREST (local Supabase) will not see a table the API roles cannot read.
+grant select on categories, districts, products, reviews to anon, authenticated;
+grant all on categories, districts, sellers, products, reviews, bot_inbox, ai_jobs, bot_outbox to service_role;
+grant execute on function get_trending_products(int), get_category_breakdown(), get_district_rankings(), update_product_stats(uuid) to anon, authenticated, service_role;
+
+alter table products add column if not exists contact text;
