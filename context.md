@@ -1,5 +1,7 @@
 # OTOP เชียงใหม่ — context
 
+> Historical maintainer notes. For current portable setup, use [README.md](README.md) and [docs/SETUP.md](docs/SETUP.md). Deployment/account/DNS notes below are not first-run instructions and have not been revalidated.
+
 Thai-language OTOP (One Tambon One Product) marketplace for Chiang Mai province.
 Storefront + a LINE/Telegram bot that uses Gemini Vision to turn a seller's photo
 into a listing.

@@ -11,6 +11,7 @@ import { listingsHandler } from './handlers/listings.handler.js';
 import { startWorker } from './services/messageQueue.service.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
+const HOST = process.env.HOST || '127.0.0.1';
 const app  = express();
 
 // Health check
@@ -34,8 +35,8 @@ listingsHandler(app);
 app.get('/', (_, res) => res.json({ service: 'OTOP Chiang Mai Bot', status: 'running' }));
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`[otop-bot] listening on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`[otop-bot] listening on http://${HOST}:${PORT}`);
 
   // Start AI job processor
   startWorker();
