@@ -1,6 +1,8 @@
 -- OTOP Chiang Mai — Supabase Schema
--- Apply to the 'otop' schema in the consolidated Supabase Pro org
--- Run: psql $DATABASE_URL < schema.sql
+-- Apply once to public in a dedicated local/development Supabase database.
+-- Tables are unqualified; clients use the public schema by default.
+-- Run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/schema.sql
+-- This bootstrap creates triggers/policies and is not a repeatable migration.
 
 -- ── Extensions ───────────────────────────────────────────────────────────────
 create extension if not exists "uuid-ossp";
